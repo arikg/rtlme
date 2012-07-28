@@ -6,7 +6,7 @@ Created on Jul 27, 2012
 
 import cssutils
 
-def reverseDirection(direction, ignoredValues):
+def reverseDirection(direction, ignoredValues = ()):
     if direction in ignoredValues:
         return None
     elif direction.lower() == "left":
@@ -21,8 +21,16 @@ def reverseAttribute(rtlRule, name, ignoredValues = ()):
     attribute = rule.style[name]
     if len(attribute) > 0:
         rtlValue = reverseDirection(attribute, ignoredValues)
-        if ignoredValues != None:
+        if rtlValue != None:
             rtlRule.style.setProperty(name, rtlValue)
+    return rtlRule
+
+def reversePositioning(rtlRule, name):
+    attribute = rule.style[name]
+    if len(attribute) > 0:
+        rtlName = reverseDirection(name)
+        rtlRule.style.setProperty(name, "auto")
+        rtlRule.style.setProperty(rtlName, attribute)
     return rtlRule
 
 if __name__ == '__main__':
@@ -37,6 +45,9 @@ if __name__ == '__main__':
             rtlRule = reverseAttribute(rtlRule, "text-direction")
             rtlRule = reverseAttribute(rtlRule, "float", ("none"))
             rtlRule = reverseAttribute(rtlRule, "clear", ("both"))
+
+            rtlRule = reversePositioning(rtlRule, "left")
+            rtlRule = reversePositioning(rtlRule, "right")
 
             if rtlRule.style.length > 0:
                 rtlStylesheet.add(rtlRule)
