@@ -6,7 +6,7 @@ Created on Jul 27, 2012
 
 import cssutils
 
-def reverseDirection(direction, ignoredValues=()):
+def reverse_direction(direction, ignoredValues=()):
     if direction in ignoredValues:
         return None
     elif direction.lower() == "left":
@@ -17,25 +17,25 @@ def reverseDirection(direction, ignoredValues=()):
         raise ValueError("can't reverse string " + direction)
 
 
-def reverseAttribute(rtlRule, name, ignoredValues=()):
+def reverse_attribute(rtlRule, name, ignoredValues=()):
     attribute = rule.style[name]
     if len(attribute) > 0:
-        rtlValue = reverseDirection(attribute, ignoredValues)
+        rtlValue = reverse_direction(attribute, ignoredValues)
         if rtlValue != None:
             rtlRule.style.setProperty(name, rtlValue)
     return rtlRule
 
 
-def reversePositioning(rtlRule, name):
+def reverse_positioning(rtlRule, name):
     attribute = rule.style[name]
     if len(attribute) > 0:
-        rtlName = reverseDirection(name)
+        rtlName = reverse_direction(name)
         rtlRule.style.setProperty(name, "auto")
         rtlRule.style.setProperty(rtlName, attribute)
     return rtlRule
 
 
-def reverseShorthandVersion(rtlRule, name):
+def reverse_shorthand_version(rtlRule, name):
     value = rule.style[name]
     if len(value) > 0:
         splitValues = value.split()
@@ -57,6 +57,17 @@ def reverseShorthandVersion(rtlRule, name):
         rtlRule.style.setProperty(nameRight, valueLeft)
     return rtlRule
 
+# TODO arikg: not finished with border: need to handle % and numbers and also background tag
+def reverse_background_position(rtlRule):
+    name = "background-position"
+    value = rule.style[name]
+    if len(value) > 0:
+        if value.find("right") > 0:
+            rtlRule.style.setProperty(name, value.replace("right", "left"))
+        elif value.find("left") > 0:
+            rtlRule.style.setProperty(name, value.replace("left", "right"))
+    return rtlRule
+
 if __name__ == '__main__':
     stylesheet = cssutils.parseFile("example/elist.css", "utf-8")
     rtlStylesheet = cssutils.css.CSSStyleSheet()
@@ -66,14 +77,16 @@ if __name__ == '__main__':
             rtlRule = cssutils.css.CSSStyleRule()
             rtlRule.selectorText = rule.selectorText
 
-            rtlRule = reverseAttribute(rtlRule, "text-align", ("center"))
-            rtlRule = reverseAttribute(rtlRule, "float", ("none"))
-            rtlRule = reverseAttribute(rtlRule, "clear", ("both"))
+            rtlRule = reverse_attribute(rtlRule, "text-align", ("center"))
+            rtlRule = reverse_attribute(rtlRule, "float", ("none"))
+            rtlRule = reverse_attribute(rtlRule, "clear", ("both"))
 
-            rtlRule = reversePositioning(rtlRule, "left")
-            rtlRule = reversePositioning(rtlRule, "right")
-            rtlRule = reverseShorthandVersion(rtlRule, "margin")
-            rtlRule = reverseShorthandVersion(rtlRule, "padding")
+            rtlRule = reverse_positioning(rtlRule, "left")
+            rtlRule = reverse_positioning(rtlRule, "right")
+            rtlRule = reverse_shorthand_version(rtlRule, "margin")
+            rtlRule = reverse_shorthand_version(rtlRule, "padding")
+
+            rtlRule = reverse_background_position(rtlRule)
 
             if rtlRule.style.length > 0:
                 rtlStylesheet.add(rtlRule)
