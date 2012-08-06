@@ -57,15 +57,28 @@ def reverse_shorthand_version(rtlRule, name):
         rtlRule.style.setProperty(nameRight, valueLeft)
     return rtlRule
 
-# TODO arikg: not finished with border: need to handle % and numbers and also background tag
+# TODO arikg: not finished with background: need to handle % and numbers and also background tag
 def reverse_background_position(rtlRule):
     name = "background-position"
     value = rule.style[name]
+    save = False
     if len(value) > 0:
-        if value.find("right") > 0:
-            rtlRule.style.setProperty(name, value.replace("right", "left"))
-        elif value.find("left") > 0:
-            rtlRule.style.setProperty(name, value.replace("left", "right"))
+        splitValue = value.split()
+        if splitValue[0] == "right":
+            splitValue[0] = "left"
+            save = True
+        elif splitValue[0] == "left":
+            splitValue[0] = "right"
+            save = True
+        elif splitValue[0] == "0":
+            splitValue[0] = "100%"
+            save = True
+        elif splitValue[0].find("%") > 0:
+            percent = splitValue[0].replace("%", "")
+            splitValue[0] = str(100 - int(percent)) + "%"
+            save = True
+        if save:
+            rtlRule.style.setProperty(name, " ".join(splitValue))
     return rtlRule
 
 if __name__ == '__main__':
