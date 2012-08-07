@@ -5,6 +5,7 @@ Created on Jul 27, 2012
 """
 
 import cssutils
+import re
 
 def reverse_direction(direction, ignoredValues=()):
     if direction in ignoredValues:
@@ -17,7 +18,7 @@ def reverse_direction(direction, ignoredValues=()):
         raise ValueError("can't reverse string " + direction)
 
 
-def reverse_attribute(rtlRule, name, ignoredValues=()):
+def reverse_attribute(rule, rtlRule, name, ignoredValues=()):
     attribute = rule.style[name]
     if len(attribute) > 0:
         rtlValue = reverse_direction(attribute, ignoredValues)
@@ -26,7 +27,7 @@ def reverse_attribute(rtlRule, name, ignoredValues=()):
     return rtlRule
 
 
-def reverse_positioning(rtlRule, name):
+def reverse_positioning(rule, rtlRule, name):
     attribute = rule.style[name]
     if len(attribute) > 0:
         rtlName = reverse_direction(name)
@@ -35,7 +36,7 @@ def reverse_positioning(rtlRule, name):
     return rtlRule
 
 
-def reverse_shorthand_version(rtlRule, name):
+def reverse_shorthand_version(rule, rtlRule, name):
     value = rule.style[name]
     if len(value) > 0:
         splitValues = value.split()
@@ -58,27 +59,33 @@ def reverse_shorthand_version(rtlRule, name):
     return rtlRule
 
 # TODO arikg: not finished with background: need to handle % and numbers and also background tag
-def reverse_background_position(rtlRule):
-    name = "background-position"
+def background_position_pattern(currValue):
+    return re.search(r'\b(right|left|center|\d+%*)\s(top|center|bottom|\d+\w{0,2})*\b', currValue)
+
+
+def reverse_background_position(rule, rtlRule, name):
     value = rule.style[name]
     save = False
     if len(value) > 0:
-        splitValue = value.split()
-        if splitValue[0] == "right":
-            splitValue[0] = "left"
-            save = True
-        elif splitValue[0] == "left":
-            splitValue[0] = "right"
-            save = True
-        elif splitValue[0] == "0":
-            splitValue[0] = "100%"
-            save = True
-        elif splitValue[0].find("%") > 0:
-            percent = splitValue[0].replace("%", "")
-            splitValue[0] = str(100 - int(percent)) + "%"
-            save = True
-        if save:
-            rtlRule.style.setProperty(name, " ".join(splitValue))
+        pattern = background_position_pattern(value)
+        if pattern:
+            splitValue = list(pattern.groups())
+            if splitValue[0] == "right":
+                splitValue[0] = "left"
+                save = True
+            elif splitValue[0] == "left":
+                splitValue[0] = "right"
+                save = True
+            elif splitValue[0] == "0":
+                splitValue[0] = "100%"
+                save = True
+            elif splitValue[0].find("%") > 0:
+                percent = splitValue[0].replace("%", "")
+                splitValue[0] = str(100 - int(percent)) + "%"
+                save = True
+
+            if save:
+                rtlRule.style.setProperty(name, " ".join(splitValue))
     return rtlRule
 
 if __name__ == '__main__':
@@ -90,16 +97,17 @@ if __name__ == '__main__':
             rtlRule = cssutils.css.CSSStyleRule()
             rtlRule.selectorText = rule.selectorText
 
-            rtlRule = reverse_attribute(rtlRule, "text-align", ("center"))
-            rtlRule = reverse_attribute(rtlRule, "float", ("none"))
-            rtlRule = reverse_attribute(rtlRule, "clear", ("both"))
+            rtlRule = reverse_attribute(rule, rtlRule, "text-align", ("center"))
+            rtlRule = reverse_attribute(rule, rtlRule, "float", ("none"))
+            rtlRule = reverse_attribute(rule, rtlRule, "clear", ("both"))
 
-            rtlRule = reverse_positioning(rtlRule, "left")
-            rtlRule = reverse_positioning(rtlRule, "right")
-            rtlRule = reverse_shorthand_version(rtlRule, "margin")
-            rtlRule = reverse_shorthand_version(rtlRule, "padding")
+            rtlRule = reverse_positioning(rule, rtlRule, "left")
+            rtlRule = reverse_positioning(rule, rtlRule, "right")
+            rtlRule = reverse_shorthand_version(rule, rtlRule, "margin")
+            rtlRule = reverse_shorthand_version(rule, rtlRule, "padding")
 
-            rtlRule = reverse_background_position(rtlRule)
+            rtlRule = reverse_background_position(rule, rtlRule, "background-position")
+            rtlRule = reverse_background_position(rule, rtlRule, "background")
 
             if rtlRule.style.length > 0:
                 rtlStylesheet.add(rtlRule)
