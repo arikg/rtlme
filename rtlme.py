@@ -58,7 +58,7 @@ def reverse_shorthand_version(rule, rtlRule, name):
         rtlRule.style.setProperty(nameRight, valueLeft)
     return rtlRule
 
-# TODO arikg: not finished with background: need to handle % and numbers and also background tag
+
 def background_position_pattern(currValue):
     return re.search(r'\b(right|left|center|\d+%*)\s(top|center|bottom|\d+\w{0,2})*\b', currValue)
 
@@ -88,6 +88,34 @@ def reverse_background_position(rule, rtlRule, name):
                 rtlRule.style.setProperty(name, " ".join(splitValue))
     return rtlRule
 
+
+# TODO arikg: border-top-left-radius etc. border-bottom-left-radius, spacing, radius
+def reverse_border(rule, rtlRule):
+    border_suffixes = ("", "-style", "-width", "-color")
+    for suffix in border_suffixes:
+        name = "border" + suffix
+        value = rule.style[name]
+        if len(value) > 0:
+            splitValues = value.split()
+            if len(splitValues) == 4 and splitValues[1] != splitValues[3]:
+                splitValues[1], splitValues[3] = splitValues[3], splitValues[1]
+                rtlRule.style.setProperty(name, " ".join(splitValues))
+
+        nameLeft = "border-" + "left" + suffix
+        nameRight = "border-" + "right" + suffix
+        valueLeft = rule.style[nameLeft]
+        valueRight = rule.style[nameRight]
+        if len(valueRight) > 0 and len(valueLeft) > 0:
+            rtlRule.style.setProperty(nameLeft, valueRight)
+            rtlRule.style.setProperty(nameRight, valueLeft)
+        elif len(valueRight) > 0:
+            rtlRule.style.setProperty(nameLeft, valueRight)
+            rtlRule.style.setProperty(nameRight, "inherit")
+        elif len(valueLeft) > 0:
+            rtlRule.style.setProperty(nameLeft, "inherit")
+            rtlRule.style.setProperty(nameRight, valueLeft)
+    return rtlRule
+
 if __name__ == '__main__':
     stylesheet = cssutils.parseFile("example/elist.css", "utf-8")
     rtlStylesheet = cssutils.css.CSSStyleSheet()
@@ -103,11 +131,14 @@ if __name__ == '__main__':
 
             rtlRule = reverse_positioning(rule, rtlRule, "left")
             rtlRule = reverse_positioning(rule, rtlRule, "right")
+
             rtlRule = reverse_shorthand_version(rule, rtlRule, "margin")
             rtlRule = reverse_shorthand_version(rule, rtlRule, "padding")
 
             rtlRule = reverse_background_position(rule, rtlRule, "background-position")
             rtlRule = reverse_background_position(rule, rtlRule, "background")
+
+            rtlRule = reverse_border(rule, rtlRule)
 
             if rtlRule.style.length > 0:
                 rtlStylesheet.add(rtlRule)
