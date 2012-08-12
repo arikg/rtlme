@@ -116,8 +116,8 @@ def reverse_border(rule, rtlRule):
             rtlRule.style.setProperty(nameRight, valueLeft)
     return rtlRule
 
-if __name__ == '__main__':
-    stylesheet = cssutils.parseFile("example/elist.css", "utf-8")
+
+def rtl_stylesheet(stylesheet):
     rtlStylesheet = cssutils.css.CSSStyleSheet()
     rtlStylesheet.add("body{ direction: rtl; unicode-bidi: embed; }")
     for rule in stylesheet.cssRules:
@@ -142,6 +142,11 @@ if __name__ == '__main__':
 
             if rtlRule.style.length > 0:
                 rtlStylesheet.add(rtlRule)
+    return rtlStylesheet
+
+if __name__ == '__main__':
+    stylesheet = cssutils.parseFile("example/elist.css", "utf-8")
+    rtlStylesheet = rtl_stylesheet(stylesheet)
 
     for rule in rtlStylesheet.cssRules:
         print(rule.cssText)
