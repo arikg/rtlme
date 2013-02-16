@@ -22,7 +22,7 @@ def reverse_attribute(rule, rtlRule, name, ignoredValues=()):
     attribute = rule.style[name]
     if len(attribute) > 0:
         rtlValue = reverse_direction(attribute, ignoredValues)
-        if rtlValue != None:
+        if rtlValue is not None:
             rtlRule.style.setProperty(name, rtlValue)
     return rtlRule
 
@@ -125,9 +125,9 @@ def rtl_stylesheet(stylesheet):
             rtlRule = cssutils.css.CSSStyleRule()
             rtlRule.selectorText = rule.selectorText
 
-            rtlRule = reverse_attribute(rule, rtlRule, "text-align", ("center"))
-            rtlRule = reverse_attribute(rule, rtlRule, "float", ("none"))
-            rtlRule = reverse_attribute(rule, rtlRule, "clear", ("both"))
+            rtlRule = reverse_attribute(rule, rtlRule, "text-align", "center")
+            rtlRule = reverse_attribute(rule, rtlRule, "float", "none")
+            rtlRule = reverse_attribute(rule, rtlRule, "clear", "both")
 
             rtlRule = reverse_positioning(rule, rtlRule, "left")
             rtlRule = reverse_positioning(rule, rtlRule, "right")
