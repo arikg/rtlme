@@ -19,60 +19,132 @@ class CssRtlParseTest(unittest.TestCase):
         self.assertIsNone(result)
 
 
-    def test_resolve_attribute_rtl_empty(self):
+    def test_resolve_attribute_rule_rtl_empty(self):
         parser = CSSRtlParser("")
         rule = cssutils.css.CSSStyleRule()
         rule.style.setProperty("clear", "right")
         rtlRule = cssutils.css.CSSStyleRule()
-        rtlRule = parser._resolve_attribute_rtl(rule, rtlRule, "float")
+        rtlRule = parser._resolve_attribute_rule_rtl(rule, rtlRule, "float")
         self.assertEqual("", rtlRule.style.cssText)
         self.assertEqual("", rtlRule.style["float"])
 
-    def test_resolve_attribute_rtl_invalid(self):
+    def test_resolve_attribute_rule_rtl_invalid(self):
         parser = CSSRtlParser("")
         rule = cssutils.css.CSSStyleRule()
         rule.style.setProperty("float", "center")
         rtlRule = cssutils.css.CSSStyleRule()
-        rtlRule = parser._resolve_attribute_rtl(rule, rtlRule, "float")
+        rtlRule = parser._resolve_attribute_rule_rtl(rule, rtlRule, "float")
         self.assertEqual("", rtlRule.style.cssText)
         self.assertEqual("", rtlRule.style["float"])
 
-    def test_resolve_attribute_rtl_valid(self):
+    def test_resolve_attribute_rule_rtl_valid(self):
         parser = CSSRtlParser("")
         rule = cssutils.css.CSSStyleRule()
         rule.style.setProperty("float", "right")
         rtlRule = cssutils.css.CSSStyleRule()
-        rtlRule = parser._resolve_attribute_rtl(rule, rtlRule, "float")
+        rtlRule = parser._resolve_attribute_rule_rtl(rule, rtlRule, "float")
         self.assertEqual("left", rtlRule.style["float"])
 
 
-    def test_resolve_positioning_rtl_empty(self):
+    def test_resolve_positioning_rule_rtl_empty(self):
         parser = CSSRtlParser("")
         rule = cssutils.css.CSSStyleRule()
         rule.style.setProperty("right", "5px")
         rtlRule = cssutils.css.CSSStyleRule()
-        rtlRule = parser._resolve_positioning_rtl(rule, rtlRule, "left")
+        rtlRule = parser._resolve_positioning_rule_rtl(rule, rtlRule, "left")
         self.assertEqual("", rtlRule.style["left"])
         self.assertEqual("", rtlRule.style["right"])
 
-    def test_resolve_positioning_rtl_invalid(self):
+    def test_resolve_positioning_rule_rtl_invalid(self):
         parser = CSSRtlParser("")
         rule = cssutils.css.CSSStyleRule()
         rule.style.setProperty("center", "5px")
         rtlRule = cssutils.css.CSSStyleRule()
-        rtlRule = parser._resolve_positioning_rtl(rule, rtlRule, "center")
+        rtlRule = parser._resolve_positioning_rule_rtl(rule, rtlRule, "center")
         self.assertEqual("", rtlRule.style["left"])
         self.assertEqual("", rtlRule.style["right"])
         self.assertEqual("", rtlRule.style["center"])
 
-    def test_resolve_positioning_rtl_valid(self):
+    def test_resolve_positioning_rule_rtl_valid(self):
         parser = CSSRtlParser("")
         rule = cssutils.css.CSSStyleRule()
         rule.style.setProperty("left", "5px")
         rtlRule = cssutils.css.CSSStyleRule()
-        rtlRule = parser._resolve_positioning_rtl(rule, rtlRule, "left")
+        rtlRule = parser._resolve_positioning_rule_rtl(rule, rtlRule, "left")
         self.assertEqual("auto", rtlRule.style["left"])
         self.assertEqual("5px", rtlRule.style["right"])
+
+
+    def test_resolve_spacing_shorthanded_rule_rtl_valid_4_values_different(self):
+        parser = CSSRtlParser("")
+        rule = cssutils.css.CSSStyleRule()
+        rule.style.setProperty("padding", "25px 50px 75px 100px")
+        rtlRule = cssutils.css.CSSStyleRule()
+        rtlRule = parser._resolve_spacing_shorthanded_rule_rtl(rule, rtlRule, "padding")
+        self.assertEqual("25px 100px 75px 50px", rtlRule.style["padding"])
+
+    def test_resolve_spacing_shorthanded_rule_rtl_valid_4_values_same(self):
+        parser = CSSRtlParser("")
+        rule = cssutils.css.CSSStyleRule()
+        rule.style.setProperty("padding", "25px 50px 75px 50px")
+        rtlRule = cssutils.css.CSSStyleRule()
+        rtlRule = parser._resolve_spacing_shorthanded_rule_rtl(rule, rtlRule, "padding")
+        self.assertEqual("", rtlRule.style["padding"])
+
+    def test_resolve_spacing_shorthanded_rule_rtl_valid_3_values_or_less(self):
+        parser = CSSRtlParser("")
+        rule = cssutils.css.CSSStyleRule()
+        rtlRule = cssutils.css.CSSStyleRule()
+
+        rule.style.setProperty("padding", "25px 50px 75px")
+        rtlRule = parser._resolve_spacing_shorthanded_rule_rtl(rule, rtlRule, "padding")
+        self.assertEqual("", rtlRule.style["padding"])
+
+        rule.style.setProperty("padding", "25px 50px")
+        rtlRule = parser._resolve_spacing_shorthanded_rule_rtl(rule, rtlRule, "padding")
+        self.assertEqual("", rtlRule.style["padding"])
+
+        rule.style.setProperty("padding", "25px ")
+        rtlRule = parser._resolve_spacing_shorthanded_rule_rtl(rule, rtlRule, "padding")
+        self.assertEqual("", rtlRule.style["padding"])
+
+    def test_resolve_spacing_specific_rule_rtl_valid_left_and_right_different(self):
+        parser = CSSRtlParser("")
+        rule = cssutils.css.CSSStyleRule()
+        rule.style.setProperty("padding-left", "25px")
+        rule.style.setProperty("padding-right", "50px")
+        rtlRule = cssutils.css.CSSStyleRule()
+        rtlRule = parser._resolve_spacing_specific_rule_rtl(rule, rtlRule, "padding")
+        self.assertEqual("50px", rtlRule.style["padding-left"])
+        self.assertEqual("25px", rtlRule.style["padding-right"])
+
+    def test_resolve_spacing_specific_rule_rtl_valid_left_and_right_same(self):
+        parser = CSSRtlParser("")
+        rule = cssutils.css.CSSStyleRule()
+        rule.style.setProperty("padding-left", "25px")
+        rule.style.setProperty("padding-right", "25px ")
+        rtlRule = cssutils.css.CSSStyleRule()
+        rtlRule = parser._resolve_spacing_specific_rule_rtl(rule, rtlRule, "padding")
+        self.assertEqual("", rtlRule.style["padding-left"])
+        self.assertEqual("", rtlRule.style["padding-right"])
+
+    def test_resolve_spacing_specific_rule_rtl_valid_only_right(self):
+        parser = CSSRtlParser("")
+        rule = cssutils.css.CSSStyleRule()
+        rule.style.setProperty("padding-right", "50px")
+        rtlRule = cssutils.css.CSSStyleRule()
+        rtlRule = parser._resolve_spacing_specific_rule_rtl(rule, rtlRule, "padding")
+        self.assertEqual("50px", rtlRule.style["padding-left"])
+        self.assertEqual("0", rtlRule.style["padding-right"])
+
+    def test_resolve_spacing_specific_rule_rtl_valid_only_left(self):
+        parser = CSSRtlParser("")
+        rule = cssutils.css.CSSStyleRule()
+        rule.style.setProperty("padding-left", "25px")
+        rtlRule = cssutils.css.CSSStyleRule()
+        rtlRule = parser._resolve_spacing_specific_rule_rtl(rule, rtlRule, "padding")
+        self.assertEqual("25px", rtlRule.style["padding-right"])
+        self.assertEqual("0", rtlRule.style["padding-left"])
 
 if __name__ == '__main__':
     unittest.main()
