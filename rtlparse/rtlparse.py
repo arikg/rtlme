@@ -63,8 +63,9 @@ class CSSRtlParser(RtlParser):
         attribute = rule.style[name]
         if attribute:
             rtlName = self._switch_direction(name)
-            rtlRule.style.setProperty(name, "auto")
-            rtlRule.style.setProperty(rtlName, attribute)
+            if rtlName is not None:
+                rtlRule.style.setProperty(name, "auto")
+                rtlRule.style.setProperty(rtlName, attribute)
         return rtlRule
 
     def _resolve_spacing_rtl(self, rule, rtlRule, name):
