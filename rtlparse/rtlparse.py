@@ -12,15 +12,15 @@ class RtlParser(object):
 class CSSRtlParser(RtlParser):
     def __init__(self, source):
         super(CSSRtlParser, self).__init__(source)
-        self.resolvers = {"text-align": self._resolve_attribute,
-                          "float": self._resolve_attribute,
-                          "clear": self._resolve_attribute,
-                          "left": self._resolve_positioning,
-                          "right": self._resolve_positioning,
-                          "margin": self._resolve_spacing,
-                          "padding": self._resolve_spacing,
-                          "background": self._resolve_background,
-                          "background-position": self._resolve_background}
+        self.resolvers = {"text-align": self._resolve_attribute_rtl,
+                          "float": self._resolve_attribute_rtl,
+                          "clear": self._resolve_attribute_rtl,
+                          "left": self._resolve_positioning_rtl,
+                          "right": self._resolve_positioning_rtl,
+                          "margin": self._resolve_spacing_rtl,
+                          "padding": self._resolve_spacing_rtl,
+                          "background": self._resolve_background_rtl,
+                          "background-position": self._resolve_background_rtl}
 
 
     def parse(self):
@@ -29,25 +29,27 @@ class CSSRtlParser(RtlParser):
         rtlStylesheet = self._rtl_this(stylesheet)
         return rtlStylesheet.cssText
 
+    def _resolve_rule_rtl(self, rule):
+        rtlRule = cssutils.css.CSSStyleRule()
+        rtlRule.selectorText = rule.selectorText
+        for key, resolver in self.resolvers.items():
+            rtlRule = resolver(rule, rtlRule, key)
+        if "border" in rule.style.cssText:
+            rtlRule = self._resolve_border_rtl(rule, rtlRule)
+        return rtlRule
+
     def _rtl_this(self, stylesheet):
         rtlStylesheet = cssutils.css.CSSStyleSheet()
         rtlStylesheet.add("body{ direction: rtl; unicode-bidi: embed; }")
         for rule in stylesheet.cssRules:
             if rule.type == rule.STYLE_RULE:
-                rtlRule = cssutils.css.CSSStyleRule()
-                rtlRule.selectorText = rule.selectorText
-
-                for key, resolver in self.resolvers.items():
-                    rtlRule = resolver(rule, rtlRule, key)
-
-                if "border" in rule.style.cssText:
-                    rtlRule = self._reverse_border(rule, rtlRule)
+                rtlRule = self._resolve_rule_rtl(rule)
 
                 if rtlRule.style.length > 0:
                     rtlStylesheet.add(rtlRule)
         return rtlStylesheet
 
-    def _resolve_attribute(self, rule, rtlRule, name):
+    def _resolve_attribute_rtl(self, rule, rtlRule, name):
         """ Reverse an attribute direction left/right and return the matching rtl css rule"""
         attribute = rule.style[name]
         if attribute:
@@ -56,7 +58,7 @@ class CSSRtlParser(RtlParser):
                 rtlRule.style.setProperty(name, rtlValue)
         return rtlRule
 
-    def _resolve_positioning(self, rule, rtlRule, name):
+    def _resolve_positioning_rtl(self, rule, rtlRule, name):
         """ Reverse a positioning attribute direction left/right (and set previous one to auto) and return the matching rtl css rule"""
         attribute = rule.style[name]
         if attribute:
@@ -65,7 +67,7 @@ class CSSRtlParser(RtlParser):
             rtlRule.style.setProperty(rtlName, attribute)
         return rtlRule
 
-    def _resolve_spacing(self, rule, rtlRule, name):
+    def _resolve_spacing_rtl(self, rule, rtlRule, name):
         """ Reverse a spacing attribute (supporting full and shorthanded version) and return the matching rtl css rule"""
         value = rule.style[name]
         if value:
@@ -100,7 +102,7 @@ class CSSRtlParser(RtlParser):
     def _background_position_pattern(self, currValue):
         return re.search(r'\b(right|left|center|\d+%*)\s(top|center|bottom|\d+\w{0,2})*\b', currValue)
 
-    def _resolve_background(self, rule, rtlRule, name):
+    def _resolve_background_rtl(self, rule, rtlRule, name):
         """ Reverse an background attribute direction left/right and return the matching rtl css rule"""
         value = rule.style[name]
         save = False
@@ -127,7 +129,7 @@ class CSSRtlParser(RtlParser):
         return rtlRule
 
     # TODO arikg: border-top-left-radius etc. border-bottom-left-radius, spacing, radius
-    def _reverse_border(self, rule, rtlRule):
+    def _resolve_border_rtl(self, rule, rtlRule):
         """ Reverse a border attribute (supporting all kinds of border parameters) and return the matching rtl css rule"""
         border_suffixes = ("", "-style", "-width", "-color")
         for suffix in border_suffixes:
