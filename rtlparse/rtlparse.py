@@ -30,45 +30,45 @@ class CSSRtlParser(RtlParser):
         return rtlStylesheet.cssText
 
     def _resolve_rule_rtl(self, rule):
-        rtlRule = cssutils.css.CSSStyleRule()
-        rtlRule.selectorText = rule.selectorText
+        rtl_rule = cssutils.css.CSSStyleRule()
+        rtl_rule.selectorText = rule.selectorText
         for key, resolver in self.resolvers.items():
-            rtlRule = resolver(rule, rtlRule, key)
+            rtl_rule = resolver(rule, rtl_rule, key)
         if "border" in rule.style.cssText:
-            rtlRule = self._resolve_border_rule_rtl(rule, rtlRule)
-        return rtlRule
+            rtl_rule = self._resolve_border_rule_rtl(rule, rtl_rule)
+        return rtl_rule
 
     def _resolve_stylesheet_rtl(self, stylesheet):
         rtlStylesheet = cssutils.css.CSSStyleSheet()
         rtlStylesheet.add("body{ direction: rtl; unicode-bidi: embed; }")
         for rule in stylesheet.cssRules:
             if rule.type == rule.STYLE_RULE:
-                rtlRule = self._resolve_rule_rtl(rule)
+                rtl_rule = self._resolve_rule_rtl(rule)
 
-                if rtlRule.style.length > 0:
-                    rtlStylesheet.add(rtlRule)
+                if rtl_rule.style.length > 0:
+                    rtlStylesheet.add(rtl_rule)
         return rtlStylesheet
 
-    def _resolve_attribute_rule_rtl(self, rule, rtlRule, name):
+    def _resolve_attribute_rule_rtl(self, rule, rtl_rule, name):
         """ Reverse an attribute direction left/right and return the matching rtl css rule"""
         attribute = rule.style[name]
         if attribute:
             rtlValue = self._switch_direction(attribute)
             if rtlValue is not None:
-                rtlRule.style.setProperty(name, rtlValue)
-        return rtlRule
+                rtl_rule.style.setProperty(name, rtlValue)
+        return rtl_rule
 
-    def _resolve_positioning_rule_rtl(self, rule, rtlRule, name):
+    def _resolve_positioning_rule_rtl(self, rule, rtl_rule, name):
         """ Reverse a positioning attribute direction left/right (and set previous one to auto) and return the matching rtl css rule"""
         attribute = rule.style[name]
         if attribute:
             rtlName = self._switch_direction(name)
             if rtlName is not None:
-                rtlRule.style.setProperty(name, "auto")
-                rtlRule.style.setProperty(rtlName, attribute)
-        return rtlRule
+                rtl_rule.style.setProperty(name, "auto")
+                rtl_rule.style.setProperty(rtlName, attribute)
+        return rtl_rule
 
-    def _resolve_spacing_shorthanded_rule_rtl(self, rule, rtlRule, name):
+    def _resolve_spacing_shorthanded_rule_rtl(self, rule, rtl_rule, name):
         """ Reverse a shorthanded spacing attribute and return the matching rtl css rule"""
         value = rule.style[name]
         if value:
@@ -76,10 +76,10 @@ class CSSRtlParser(RtlParser):
             # only a shorthanded version with 4 values with the 2nd and 4th different needs an rtl fix
             if len(splitValues) == 4 and splitValues[1] != splitValues[3]:
                 splitValues[1], splitValues[3] = splitValues[3], splitValues[1]
-                rtlRule.style.setProperty(name, " ".join(splitValues))
-        return rtlRule
+                rtl_rule.style.setProperty(name, " ".join(splitValues))
+        return rtl_rule
 
-    def _resolve_spacing_specific_rule_rtl(self, rule, rtlRule, name):
+    def _resolve_spacing_specific_rule_rtl(self, rule, rtl_rule, name):
         """ Reverse a spacing attribute and return the matching rtl css rule"""
         nameLeft = name + "-left"
         nameRight = name + "-right"
@@ -87,21 +87,21 @@ class CSSRtlParser(RtlParser):
         valueRight = rule.style[nameRight]
         if valueRight and valueLeft:
             if valueRight != valueLeft:
-                rtlRule.style.setProperty(nameLeft, valueRight)
-                rtlRule.style.setProperty(nameRight, valueLeft)
+                rtl_rule.style.setProperty(nameLeft, valueRight)
+                rtl_rule.style.setProperty(nameRight, valueLeft)
         elif valueRight and not valueLeft:
-            rtlRule.style.setProperty(nameLeft, valueRight)
-            rtlRule.style.setProperty(nameRight, "0px")
+            rtl_rule.style.setProperty(nameLeft, valueRight)
+            rtl_rule.style.setProperty(nameRight, "0px")
         elif valueLeft and not valueRight:
-            rtlRule.style.setProperty(nameLeft, "0px")
-            rtlRule.style.setProperty(nameRight, valueLeft)
-        return rtlRule
+            rtl_rule.style.setProperty(nameLeft, "0px")
+            rtl_rule.style.setProperty(nameRight, valueLeft)
+        return rtl_rule
 
-    def _resolve_spacing_rule_rtl(self, rule, rtlRule, name):
+    def _resolve_spacing_rule_rtl(self, rule, rtl_rule, name):
         """ Reverse a spacing attribute (supporting full and shorthanded version) and return the matching rtl css rule"""
-        rtlRule = self._resolve_spacing_shorthanded_rule_rtl(rule, rtlRule, name)
-        rtlRule = self._resolve_spacing_specific_rule_rtl(rule, rtlRule, name)
-        return rtlRule
+        rtl_rule = self._resolve_spacing_shorthanded_rule_rtl(rule, rtl_rule, name)
+        rtl_rule = self._resolve_spacing_specific_rule_rtl(rule, rtl_rule, name)
+        return rtl_rule
 
     def _switch_direction(self, direction):
         """ Reverse right/left. for other values return null """
@@ -115,7 +115,7 @@ class CSSRtlParser(RtlParser):
     def _background_position_pattern(self, currValue):
         return re.search(r'\b(right|left|center|\d+%*)\s(top|center|bottom|\d+\w{0,2})*\b', currValue)
 
-    def _resolve_background_rule_rtl(self, rule, rtlRule, name):
+    def _resolve_background_rule_rtl(self, rule, rtl_rule, name):
         """ Reverse an background attribute direction left/right and return the matching rtl css rule"""
         value = rule.style[name]
         save = False
@@ -123,11 +123,8 @@ class CSSRtlParser(RtlParser):
             pattern = self._background_position_pattern(value)
             if pattern:
                 splitValue = list(pattern.groups())
-                if splitValue[0] == "right":
-                    splitValue[0] = "left"
-                    save = True
-                elif splitValue[0] == "left":
-                    splitValue[0] = "right"
+                if splitValue[0] == "right" or splitValue[0] == "left":
+                    splitValue[0] = self._switch_direction(splitValue[0])
                     save = True
                 elif splitValue[0] == "0":
                     splitValue[0] = "100%"
@@ -140,11 +137,11 @@ class CSSRtlParser(RtlParser):
                     save = True
 
                 if save:
-                    rtlRule.style.setProperty(name, " ".join(splitValue))
-        return rtlRule
+                    rtl_rule.style.setProperty(name, " ".join(splitValue))
+        return rtl_rule
 
     # TODO arikg: border-top-left-radius etc. border-bottom-left-radius, spacing, radius
-    def _resolve_border_rule_rtl(self, rule, rtlRule):
+    def _resolve_border_rule_rtl(self, rule, rtl_rule):
         """ Reverse a border attribute (supporting all kinds of border parameters) and return the matching rtl css rule"""
         border_suffixes = ("", "-style", "-width", "-color")
         for suffix in border_suffixes:
@@ -154,22 +151,22 @@ class CSSRtlParser(RtlParser):
                 splitValues = value.split()
                 if len(splitValues) == 4 and splitValues[1] != splitValues[3]:
                     splitValues[1], splitValues[3] = splitValues[3], splitValues[1]
-                    rtlRule.style.setProperty(name, " ".join(splitValues))
+                    rtl_rule.style.setProperty(name, " ".join(splitValues))
 
             nameLeft = "border-" + "left" + suffix
             nameRight = "border-" + "right" + suffix
             valueLeft = rule.style[nameLeft]
             valueRight = rule.style[nameRight]
             if len(valueRight) > 0 and len(valueLeft) > 0:
-                rtlRule.style.setProperty(nameLeft, valueRight)
-                rtlRule.style.setProperty(nameRight, valueLeft)
+                rtl_rule.style.setProperty(nameLeft, valueRight)
+                rtl_rule.style.setProperty(nameRight, valueLeft)
             elif len(valueRight) > 0:
-                rtlRule.style.setProperty(nameLeft, valueRight)
-                rtlRule.style.setProperty(nameRight, "inherit")
+                rtl_rule.style.setProperty(nameLeft, valueRight)
+                rtl_rule.style.setProperty(nameRight, "inherit")
             elif len(valueLeft) > 0:
-                rtlRule.style.setProperty(nameLeft, "inherit")
-                rtlRule.style.setProperty(nameRight, valueLeft)
-        return rtlRule
+                rtl_rule.style.setProperty(nameLeft, "inherit")
+                rtl_rule.style.setProperty(nameRight, valueLeft)
+        return rtl_rule
 
 
 # TODO arikg: replace this main with something more logical
