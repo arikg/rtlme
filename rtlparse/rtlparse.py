@@ -69,6 +69,7 @@ class CSSRtlParser(RtlParser):
         return rtlRule
 
     def _resolve_spacing_shorthanded_rule_rtl(self, rule, rtlRule, name):
+        """ Reverse a shorthanded spacing attribute and return the matching rtl css rule"""
         value = rule.style[name]
         if value:
             splitValues = value.split()
@@ -79,6 +80,7 @@ class CSSRtlParser(RtlParser):
         return rtlRule
 
     def _resolve_spacing_specific_rule_rtl(self, rule, rtlRule, name):
+        """ Reverse a spacing attribute and return the matching rtl css rule"""
         nameLeft = name + "-left"
         nameRight = name + "-right"
         valueLeft = rule.style[nameLeft]
@@ -133,6 +135,8 @@ class CSSRtlParser(RtlParser):
                 elif splitValue[0].find("%") > 0:
                     percent = splitValue[0].replace("%", "")
                     splitValue[0] = str(100 - int(percent)) + "%"
+                    if value.endswith('%') and not splitValue[1].endswith('%'):
+                        splitValue[1] += '%'
                     save = True
 
                 if save:

@@ -146,5 +146,45 @@ class CssRtlParseTest(unittest.TestCase):
         self.assertEqual("25px", rtlRule.style["padding-right"])
         self.assertEqual("0", rtlRule.style["padding-left"])
 
+
+    def test_resolve_background_rule_rtl_empty(self):
+        parser = CSSRtlParser("")
+        rule = cssutils.css.CSSStyleRule()
+        rtlRule = cssutils.css.CSSStyleRule()
+        rtlRule = parser._resolve_background_rule_rtl(rule, rtlRule, "background")
+        self.assertEqual("", rtlRule.style["background"])
+
+    def test_resolve_background_rule_rtl_valid_position_ignored(self):
+        parser = CSSRtlParser("")
+        rule = cssutils.css.CSSStyleRule()
+        rule.style.setProperty("background", "center top")
+        rtlRule = cssutils.css.CSSStyleRule()
+        rtlRule = parser._resolve_background_rule_rtl(rule, rtlRule, "background")
+        self.assertEqual("", rtlRule.style["background"])
+
+    def test_resolve_background_rule_rtl_valid_position_set(self):
+        parser = CSSRtlParser("")
+        rule = cssutils.css.CSSStyleRule()
+        rule.style.setProperty("background", "left top")
+        rtlRule = cssutils.css.CSSStyleRule()
+        rtlRule = parser._resolve_background_rule_rtl(rule, rtlRule, "background")
+        self.assertEqual("right top", rtlRule.style["background"])
+
+    def test_resolve_background_rule_rtl_valid_position_zero(self):
+        parser = CSSRtlParser("")
+        rule = cssutils.css.CSSStyleRule()
+        rule.style.setProperty("background", "0 20")
+        rtlRule = cssutils.css.CSSStyleRule()
+        rtlRule = parser._resolve_background_rule_rtl(rule, rtlRule, "background")
+        self.assertEqual("100% 20", rtlRule.style["background"])
+
+    def test_resolve_background_rule_rtl_valid_position_percent(self):
+        parser = CSSRtlParser("")
+        rule = cssutils.css.CSSStyleRule()
+        rule.style.setProperty("background", "70% 15%")
+        rtlRule = cssutils.css.CSSStyleRule()
+        rtlRule = parser._resolve_background_rule_rtl(rule, rtlRule, "background")
+        self.assertEqual("30% 15%", rtlRule.style["background"])
+
 if __name__ == '__main__':
     unittest.main()
