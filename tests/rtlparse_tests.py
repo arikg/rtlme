@@ -72,28 +72,28 @@ class CssRtlParseTest(unittest.TestCase):
     def test_resolve_spacing_shorthanded_rule_rtl_valid_4_values_different(self):
         parser, rule, rtl_rule = self.create_test_objects()
         rule.style.setProperty("padding", "25px 50px 75px 100px")
-        rtl_rule = parser._resolve_spacing_shorthanded_rule_rtl(rule, rtl_rule, "padding")
+        rtl_rule = parser._resolve_shorthanded_rule_rtl(rule, rtl_rule, "padding")
         self.assertEqual("25px 100px 75px 50px", rtl_rule.style["padding"])
 
     def test_resolve_spacing_shorthanded_rule_rtl_valid_4_values_same(self):
         parser, rule, rtl_rule = self.create_test_objects()
         rule.style.setProperty("padding", "25px 50px 75px 50px")
-        rtl_rule = parser._resolve_spacing_shorthanded_rule_rtl(rule, rtl_rule, "padding")
+        rtl_rule = parser._resolve_shorthanded_rule_rtl(rule, rtl_rule, "padding")
         self.assertEqual("", rtl_rule.style["padding"])
 
     def test_resolve_spacing_shorthanded_rule_rtl_valid_3_values_or_less(self):
         parser, rule, rtl_rule = self.create_test_objects()
 
         rule.style.setProperty("padding", "25px 50px 75px")
-        rtl_rule = parser._resolve_spacing_shorthanded_rule_rtl(rule, rtl_rule, "padding")
+        rtl_rule = parser._resolve_shorthanded_rule_rtl(rule, rtl_rule, "padding")
         self.assertEqual("", rtl_rule.style["padding"])
 
         rule.style.setProperty("padding", "25px 50px")
-        rtl_rule = parser._resolve_spacing_shorthanded_rule_rtl(rule, rtl_rule, "padding")
+        rtl_rule = parser._resolve_shorthanded_rule_rtl(rule, rtl_rule, "padding")
         self.assertEqual("", rtl_rule.style["padding"])
 
         rule.style.setProperty("padding", "25px ")
-        rtl_rule = parser._resolve_spacing_shorthanded_rule_rtl(rule, rtl_rule, "padding")
+        rtl_rule = parser._resolve_shorthanded_rule_rtl(rule, rtl_rule, "padding")
         self.assertEqual("", rtl_rule.style["padding"])
 
     def test_resolve_spacing_specific_rule_rtl_valid_left_and_right_different(self):
@@ -155,6 +155,41 @@ class CssRtlParseTest(unittest.TestCase):
         rule.style.setProperty("background", "70% 15%")
         rtl_rule = parser._resolve_background_rule_rtl(rule, rtl_rule, "background")
         self.assertEqual("30% 15%", rtl_rule.style["background"])
+
+    def test_resolve_border_shorthanded_rule_rtl_valid_4_values(self):
+        parser, rule, rtl_rule = self.create_test_objects()
+        rule.style.setProperty("border-style", "dotted solid double dashed")
+        rtl_rule = parser._resolve_border_rule_rtl(rule, rtl_rule)
+        self.assertEqual("dotted dashed double solid", rtl_rule.style["border-style"])
+
+    def test_resolve_border_shorthanded_rule_rtl_valid_3_values_or_less(self):
+        parser, rule, rtl_rule = self.create_test_objects()
+
+        rule.style.setProperty("border-style", "dotted solid double")
+        rtl_rule = parser._resolve_border_rule_rtl(rule, rtl_rule)
+        self.assertEqual("", rtl_rule.style["border-style"])
+
+        rule.style.setProperty("border-style", "dotted solid")
+        rtl_rule = parser._resolve_border_rule_rtl(rule, rtl_rule)
+        self.assertEqual("", rtl_rule.style["border-style"])
+
+        rule.style.setProperty("border-style", "dotted ")
+        rtl_rule = parser._resolve_border_rule_rtl(rule, rtl_rule)
+        self.assertEqual("", rtl_rule.style["border-style"])
+
+    def test_resolve_border_rules_rtl_valid(self):
+        parser, rule, rtl_rule = self.create_test_objects()
+        rule.style.setProperty("border-left-style", "dotted")
+        rule.style.setProperty("border-right-width", "medium")
+        rule.style.setProperty("border-left-color", "red")
+        rule.style.setProperty("border-right-color", "blue")
+        rtl_rule = parser._resolve_border_rule_rtl(rule, rtl_rule)
+        self.assertEqual("inherit", rtl_rule.style["border-left-style"])
+        self.assertEqual("dotted", rtl_rule.style["border-right-style"])
+        self.assertEqual("medium", rtl_rule.style["border-left-width"])
+        self.assertEqual("inherit", rtl_rule.style["border-right-width"])
+        self.assertEqual("blue", rtl_rule.style["border-left-color"])
+        self.assertEqual("red", rtl_rule.style["border-right-color"])
 
 if __name__ == '__main__':
     unittest.main()

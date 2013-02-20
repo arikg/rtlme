@@ -68,8 +68,8 @@ class CSSRtlParser(RtlParser):
                 rtl_rule.style.setProperty(rtlName, attribute)
         return rtl_rule
 
-    def _resolve_spacing_shorthanded_rule_rtl(self, rule, rtl_rule, name):
-        """ Reverse a shorthanded spacing attribute and return the matching rtl css rule"""
+    def _resolve_shorthanded_rule_rtl(self, rule, rtl_rule, name):
+        """ Reverse a shorthanded attribute and return the matching rtl css rule"""
         value = rule.style[name]
         if value:
             splitValues = value.split()
@@ -99,7 +99,7 @@ class CSSRtlParser(RtlParser):
 
     def _resolve_spacing_rule_rtl(self, rule, rtl_rule, name):
         """ Reverse a spacing attribute (supporting full and shorthanded version) and return the matching rtl css rule"""
-        rtl_rule = self._resolve_spacing_shorthanded_rule_rtl(rule, rtl_rule, name)
+        rtl_rule = self._resolve_shorthanded_rule_rtl(rule, rtl_rule, name)
         rtl_rule = self._resolve_spacing_specific_rule_rtl(rule, rtl_rule, name)
         return rtl_rule
 
@@ -146,24 +146,19 @@ class CSSRtlParser(RtlParser):
         border_suffixes = ("", "-style", "-width", "-color")
         for suffix in border_suffixes:
             name = "border" + suffix
-            value = rule.style[name]
-            if len(value) > 0:
-                splitValues = value.split()
-                if len(splitValues) == 4 and splitValues[1] != splitValues[3]:
-                    splitValues[1], splitValues[3] = splitValues[3], splitValues[1]
-                    rtl_rule.style.setProperty(name, " ".join(splitValues))
+            rtl_rule = self._resolve_shorthanded_rule_rtl(rule, rtl_rule, name)
 
             nameLeft = "border-" + "left" + suffix
             nameRight = "border-" + "right" + suffix
             valueLeft = rule.style[nameLeft]
             valueRight = rule.style[nameRight]
-            if len(valueRight) > 0 and len(valueLeft) > 0:
+            if valueRight and valueLeft:
                 rtl_rule.style.setProperty(nameLeft, valueRight)
                 rtl_rule.style.setProperty(nameRight, valueLeft)
-            elif len(valueRight) > 0:
+            elif valueRight:
                 rtl_rule.style.setProperty(nameLeft, valueRight)
                 rtl_rule.style.setProperty(nameRight, "inherit")
-            elif len(valueLeft) > 0:
+            elif valueLeft:
                 rtl_rule.style.setProperty(nameLeft, "inherit")
                 rtl_rule.style.setProperty(nameRight, valueLeft)
         return rtl_rule
