@@ -7,8 +7,11 @@ class Result(models.Model):
     success = models.BooleanField()
     date = models.DateTimeField()
 
+    def short_input(self):
+        return unicode(self.input_text[:30])
+
     def __unicode__(self):
-        return self.date
+        return unicode(self.date)
 
 class Feedback(models.Model):
     success = models.BooleanField()
@@ -17,4 +20,4 @@ class Feedback(models.Model):
     result = models.ForeignKey(Result)
 
     def __unicode__(self):
-        return self.text
+        return unicode(self.text)
