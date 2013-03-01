@@ -1,6 +1,6 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
+from rtlparse import CSSRtlParser
 from models import Result
-# from rtlparse.rtlparse import CSSRtlParser
 
 
 def index(request):
@@ -10,16 +10,17 @@ def index(request):
 def rtl(request):
     try:
         input_text = request.POST['input_text']
-    except (KeyError):
+        try:
+            output_text = CSSRtlParser(input_text).parse()
+            result = Result.create(input_text, output_text, True)
+            result.save()
+            return redirect('/rtlme/%s/' % result.pk)
+        # TODO arikg: handle smaller exception
+        except Exception:
+            result = Result.create(input_text, Exception.message, False)
+            result.save()
+            return redirect('/rtlme/%s/' % result.pk)
+    except KeyError:
         return render(request, 'rtlme/index.html', {
             'error_message': "Please fill in the text to rtl",
-            })
-    # output_text = CSSRtlParser(input_text).parse()
-
-    return redirect('/rtlme/%s/' % 1)
-
-
-def result(request, result_id):
-    current_result = get_object_or_404(Result, pk=result_id)
-    context = {'result': current_result}
-    return render(request, "rtlme/result.html", context)
+        })
