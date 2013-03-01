@@ -1,12 +1,19 @@
+{% extends "rtlme/base.html" %}
 {% load url from future %}
 
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-
-
-<form action="{% url 'rtlme:rtl' %}" method="post">
-    {% csrf_token %}
-    <label for="input_text">Input:</label>
-    <textarea id="input_text" name="input_text" rows="5" cols="50"></textarea>
-
-    <input type="submit" value="RTL me!">
-</form>
+{% block content %}
+<div id="wrapper" class="paste">
+    <h1 class="logo">RTLme</h1>
+    <form class="main" action="{% url 'rtlme:rtl' %}" method="post">
+        {% csrf_token %}
+        <!-- TODO arikg: make error message work-->
+        <!--{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}-->
+        <div class="row">
+            <textarea class="text-area text-area-big" name="input_text" id="input_text" placeholder="Insert LTR CSS"></textarea>
+        </div>
+        <div class="row submit">
+            <input type="submit" name="submit" class="btn btn-primary btn-large" value="RTL me!">
+        </div>
+    </form>
+</div>
+{% endblock %}
