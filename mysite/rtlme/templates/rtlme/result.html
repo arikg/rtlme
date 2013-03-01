@@ -1,0 +1,10 @@
+{% if result %}
+Input: <textarea rows="5" cols="50">
+    {{ result.input_text }}
+</textarea> </br>
+Output: <textarea rows="5" cols="50">
+    {{ result.output_text }}
+</textarea>
+{% else %}
+<p>No RTL result found</p>
+{% endif %}

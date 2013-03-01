@@ -5,7 +5,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^rtlme/', include('rtlme.urls')),
+    url(r'^rtlme/', include('rtlme.urls', namespace="rtlme")),
 
     # Examples:
     # url(r'^$', 'mysite.views.home', name='home'),

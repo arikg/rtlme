@@ -1,0 +1,12 @@
+{% load url from future %}
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+
+<form action="{% url 'rtlme:rtl' %}" method="post">
+    {% csrf_token %}
+    <label for="input_text">Input:</label>
+    <textarea id="input_text" name="input_text" rows="5" cols="50"></textarea>
+
+    <input type="submit" value="RTL me!">
+</form>
