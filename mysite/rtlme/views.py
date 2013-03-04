@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from rtlparse import CSSRtlParser
-from models import Result
+from models import Result, Feedback
 
 
 def index(request):
@@ -24,3 +24,22 @@ def rtl(request):
         return render(request, 'rtlme/index.html', {
             'error_message': "Please fill in the text to rtl",
         })
+
+
+def feedback(request, result_id):
+    try:
+        rate_text = request.POST['rate-text']
+        rate_score = request.POST['score']
+        result = Result.objects.get(pk=result_id)
+        feedback = Feedback(rating=rate_score, text=rate_text, result=result)
+        feedback.save()
+    # TODO arikg: handle smaller exception
+    except Exception:
+        return redirect('/rtlme/%s/' % result_id, {
+            'error_message': "Please fill in the rating and text",
+        })
+    return redirect('/rtlme/thanks')
+
+
+def thanks(request):
+    return render(request, "rtlme/thanks.html")

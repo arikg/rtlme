@@ -12,6 +12,6 @@ class ResultAdmin(admin.ModelAdmin):
     inlines = [FeedbackInline]
     list_display = ("date", "short_input", "success")
     list_filter = ["date", "success"]
-    search_fields = ["input_text","output_text"]
+    search_fields = ["input_text", "output_text"]
 
 admin.site.register(Result, ResultAdmin)

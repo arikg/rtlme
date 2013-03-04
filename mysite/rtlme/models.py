@@ -22,9 +22,8 @@ class Result(models.Model):
 
 
 class Feedback(models.Model):
-    success = models.BooleanField()
     rating = models.IntegerField()
-    text = models.CharField(max_length=140)
+    text = models.TextField()
     result = models.ForeignKey(Result)
 
     def __unicode__(self):
